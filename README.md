@@ -34,6 +34,68 @@ Enterprise-grade AWS Transit Gateway Terraform module with VPC attachments, cust
     +----------------------------------------------------------------+
 ```
 
+### Component Diagram
+
+```mermaid
+flowchart TB
+    subgraph TGW["Transit Gateway"]
+        CORE["Transit Gateway\n(ASN, DNS, ECMP)"]
+        DRT["Default Route Table"]
+    end
+
+    subgraph Attachments["VPC Attachments"]
+        VPCA["VPC A\n(Spoke)"]
+        VPCB["VPC B\n(Spoke)"]
+        VPCC["VPC C\n(Spoke)"]
+    end
+
+    subgraph RouteTables["Custom Route Tables"]
+        PRT["Production RT"]
+        DRT2["Development RT"]
+        BH["Blackhole Routes"]
+    end
+
+    subgraph Sharing["Cross-Account / Cross-Region"]
+        RAM["RAM Resource Share"]
+        PEER["Inter-Region Peering"]
+    end
+
+    subgraph Features["Capabilities"]
+        MC["Multicast Support"]
+        FL["Flow Logs"]
+    end
+
+    VPCA --> CORE
+    VPCB --> CORE
+    VPCC --> CORE
+    CORE --> DRT
+    CORE --> PRT
+    CORE --> DRT2
+    PRT --> BH
+    CORE --> RAM
+    CORE --> PEER
+    CORE --> MC
+    CORE --> FL
+
+    style TGW fill:#FF9900,stroke:#FF9900,color:#fff
+    style Attachments fill:#1A73E8,stroke:#1A73E8,color:#fff
+    style RouteTables fill:#DD344C,stroke:#DD344C,color:#fff
+    style Sharing fill:#8C4FFF,stroke:#8C4FFF,color:#fff
+    style Features fill:#3F8624,stroke:#3F8624,color:#fff
+    style CORE fill:#FF9900,stroke:#cc7a00,color:#fff
+    style DRT fill:#FF9900,stroke:#cc7a00,color:#fff
+    style VPCA fill:#1A73E8,stroke:#1459b3,color:#fff
+    style VPCB fill:#1A73E8,stroke:#1459b3,color:#fff
+    style VPCC fill:#1A73E8,stroke:#1459b3,color:#fff
+    style PRT fill:#DD344C,stroke:#b02a3d,color:#fff
+    style DRT2 fill:#DD344C,stroke:#b02a3d,color:#fff
+    style BH fill:#DD344C,stroke:#b02a3d,color:#fff
+    style RAM fill:#8C4FFF,stroke:#6b3dcc,color:#fff
+    style PEER fill:#8C4FFF,stroke:#6b3dcc,color:#fff
+    style MC fill:#3F8624,stroke:#2d6119,color:#fff
+    style FL fill:#3F8624,stroke:#2d6119,color:#fff
+```
+
 ## Features
 
 - **Transit Gateway**: Fully configurable with ASN, DNS, ECMP, and multicast support
