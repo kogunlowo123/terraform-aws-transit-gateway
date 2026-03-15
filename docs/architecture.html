@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>terraform-aws-transit-gateway | Architecture</title>
+<style>
+:root{--ink:#0b0c0b;--ink2:#141514;--ink3:#1e1f1e;--border:#2a2b2a;--text:#c8c9c8;--text2:#9a9b9a;--accent:#c8420a;--accent2:#e05a1a;--green:#2ecc71;--blue:#3498db;--yellow:#f1c40f;--red:#e74c3c;--purple:#9b59b6;--mono:"SF Mono","Fira Code","Fira Mono","Roboto Mono",monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--ink);color:var(--text);font-family:var(--mono);font-size:14px;line-height:1.7}
+a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+header{border-bottom:1px solid var(--border);padding:32px 0}
+header h1{font-size:28px;color:#fff;font-weight:700}header h1 span{color:var(--accent)}
+header p.sub{color:var(--text2);margin-top:6px;font-size:13px}
+.badge{display:inline-block;padding:2px 10px;border-radius:3px;font-size:11px;font-weight:600;margin-right:6px;margin-top:8px}
+.badge-tf{background:#623ce4;color:#fff}.badge-aws{background:#ff9900;color:#111}.badge-mit{background:#2ecc71;color:#111}
+section{padding:40px 0;border-bottom:1px solid var(--border)}section:last-of-type{border-bottom:none}
+h2{font-size:20px;color:#fff;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:4px;height:20px;background:var(--accent);display:inline-block;border-radius:2px}
+h3{font-size:15px;color:var(--accent2);margin:16px 0 10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.card{background:var(--ink2);border:1px solid var(--border);border-radius:6px;padding:20px}
+.card h4{color:#fff;font-size:14px;margin-bottom:6px}.card p{color:var(--text2);font-size:12px}
+.card .num{font-size:24px;color:var(--accent);font-weight:700}
+.arch-diagram{background:var(--ink2);border:1px solid var(--border);border-radius:6px;padding:32px;overflow-x:auto;margin:16px 0}
+.flow{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center}
+.flow .box{background:var(--ink3);border:1px solid var(--border);border-radius:4px;padding:12px 18px;text-align:center;min-width:130px;font-size:12px;color:#fff}
+.flow .box.primary{border-color:var(--accent);background:rgba(200,66,10,0.1)}
+.flow .box.green{border-color:var(--green);background:rgba(46,204,113,0.06)}
+.flow .box.blue{border-color:var(--blue);background:rgba(52,152,219,0.06)}
+.flow .box.purple{border-color:var(--purple);background:rgba(155,89,182,0.06)}
+.flow .box.yellow{border-color:var(--yellow);background:rgba(241,196,15,0.06)}
+.flow .box.red{border-color:var(--red);background:rgba(231,76,60,0.06)}
+.flow .box small{display:block;color:var(--text2);font-size:10px;margin-top:4px}
+.flow .arrow{color:var(--accent);font-size:18px;font-weight:700}
+.flow-col{display:flex;flex-direction:column;align-items:center;gap:8px}
+.flow-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+.arrow-down{color:var(--accent);font-size:18px}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th{text-align:left;padding:10px 12px;background:var(--ink2);color:var(--accent2);border:1px solid var(--border);font-weight:600}
+td{padding:10px 12px;border:1px solid var(--border);color:var(--text)}
+tr:hover td{background:var(--ink2)}
+code{background:var(--ink3);padding:2px 6px;border-radius:3px;font-size:12px;color:var(--accent2)}
+pre{background:var(--ink2);border:1px solid var(--border);border-radius:6px;padding:16px;overflow-x:auto;font-size:12px;line-height:1.6;margin:12px 0}
+.checklist{list-style:none;padding:0}
+.checklist li{padding:8px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:13px}
+.checklist li::before{content:"[ ]";color:var(--accent);font-weight:700;font-size:12px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:768px){.grid-2,.cards{grid-template-columns:1fr}}
+footer{border-top:1px solid var(--border);padding:24px 0;text-align:center;color:var(--text2);font-size:11px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+<h1><span>//</span> terraform-aws-transit-gateway</h1>
+<p class="sub">Enterprise-grade AWS Transit Gateway with VPC attachments, custom route tables, RAM sharing, and inter-region peering support.</p>
+<div>
+<span class="badge badge-tf">Terraform &ge; 1.5.0</span>
+<span class="badge badge-aws">AWS &ge; 5.20.0</span>
+<span class="badge badge-mit">MIT License</span>
+</div>
+</header>
+
+<section>
+<h2>Executive Summary</h2>
+<p>This module provisions an AWS Transit Gateway with full-featured networking capabilities. It creates a Transit Gateway with configurable ASN, DNS support, VPN ECMP, and multicast. VPC attachments support per-attachment configuration including appliance mode for stateful firewalls. Custom route tables enable network segmentation with associations, propagations, static routes, and blackhole routes. Cross-account sharing is implemented via AWS RAM, and sub-modules provide spoke attachment and inter-region peering patterns. Input validation ensures CIDR correctness and ASN range compliance.</p>
+</section>
+
+<section>
+<h2>Overview</h2>
+<div class="cards">
+<div class="card"><div class="num">7</div><h4>Resource Types</h4><p>Transit GW, VPC Attachments, Route Tables, Routes, Associations, Propagations, RAM Share</p></div>
+<div class="card"><div class="num">2</div><h4>Sub-Modules</h4><p>spoke-attachment and inter-region-peering</p></div>
+<div class="card"><div class="num">13</div><h4>Input Variables</h4><p>Name, ASN, DNS, ECMP, multicast, attachments, routes, RAM principals</p></div>
+<div class="card"><div class="num">~$239</div><h4>Monthly Cost</h4><p>5 VPC attachments + 1TB data (us-east-1 estimate)</p></div>
+</div>
+</section>
+
+<section>
+<h2>Architecture Diagram</h2>
+<div class="arch-diagram">
+<div class="flow-col">
+<div class="flow-row">
+<div class="box blue">VPC A (Spoke)<small>10.1.0.0/16</small></div>
+<div class="box blue">VPC B (Spoke)<small>10.2.0.0/16</small></div>
+<div class="box blue">VPC C (Spoke)<small>10.3.0.0/16</small></div>
+</div>
+<div class="arrow-down">&darr;</div>
+<div class="flow-row">
+<div class="box primary">Transit Gateway<small>ASN 64512, DNS, ECMP</small></div>
+</div>
+<div class="arrow-down">&darr;</div>
+<div class="flow-row">
+<div class="box red">Production RT<small>Custom route table</small></div>
+<div class="box yellow">Development RT<small>Custom route table</small></div>
+<div class="box">Default RT<small>Auto-association</small></div>
+</div>
+<div class="arrow-down">&darr;</div>
+<div class="flow-row">
+<div class="box red">Blackhole Routes<small>Drop 172.16.0.0/12</small></div>
+<div class="box purple">RAM Resource Share<small>Cross-account sharing</small></div>
+<div class="box purple">Inter-Region Peering<small>us-east-1 &harr; eu-west-1</small></div>
+</div>
+</div>
+</div>
+</section>
+
+<section>
+<h2>Component Breakdown</h2>
+<table>
+<tr><th>Component</th><th>Resource</th><th>Purpose</th></tr>
+<tr><td>Transit Gateway</td><td><code>aws_ec2_transit_gateway</code></td><td>Central hub with ASN, DNS, ECMP, multicast, VPN support</td></tr>
+<tr><td>VPC Attachments</td><td><code>aws_ec2_transit_gateway_vpc_attachment</code></td><td>Connect VPCs with appliance mode, DNS, per-attachment route control</td></tr>
+<tr><td>Custom Route Tables</td><td><code>aws_ec2_transit_gateway_route_table</code></td><td>Network segmentation (production, development, shared)</td></tr>
+<tr><td>Static Routes</td><td><code>aws_ec2_transit_gateway_route</code></td><td>Forwarding and blackhole routes for traffic control</td></tr>
+<tr><td>Associations</td><td><code>aws_ec2_transit_gateway_route_table_association</code></td><td>Link VPC attachments to specific route tables</td></tr>
+<tr><td>Propagations</td><td><code>aws_ec2_transit_gateway_route_table_propagation</code></td><td>Dynamic route advertisement from attachments</td></tr>
+<tr><td>RAM Share</td><td><code>aws_ram_resource_share</code> + associations</td><td>Share Transit Gateway with other AWS accounts or organizations</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Data Flow</h2>
+<div class="arch-diagram">
+<div class="flow">
+<div class="box blue">VPC A (10.1/16)</div>
+<div class="arrow">&rarr;</div>
+<div class="box primary">Transit Gateway</div>
+<div class="arrow">&rarr;</div>
+<div class="box red">Route Table Lookup</div>
+<div class="arrow">&rarr;</div>
+<div class="box blue">VPC B (10.2/16)</div>
+</div>
+</div>
+<p style="margin-top:8px;color:var(--text2);font-size:13px">Traffic from VPC A enters the Transit Gateway via its attachment, is evaluated against the associated route table, and forwarded to the target VPC attachment. Blackhole routes drop traffic to restricted CIDRs. Route propagations enable dynamic route learning from attached VPCs.</p>
+</section>
+
+<section>
+<h2>Security Controls</h2>
+<div class="grid-2">
+<div class="card"><h4>Network Segmentation</h4><p>Custom route tables isolate production from development traffic. Disable default route table association for explicit control.</p></div>
+<div class="card"><h4>Blackhole Routes</h4><p>Drop traffic to unused or restricted CIDR ranges by adding blackhole routes</p></div>
+<div class="card"><h4>Appliance Mode</h4><p>Enable for stateful firewall VPCs to ensure symmetric routing for IDS/IPS</p></div>
+<div class="card"><h4>RAM Governance</h4><p>Share via organization-level ARNs with SCPs. Auto-accept only with strong governance.</p></div>
+<div class="card"><h4>DNS Isolation</h4><p>DNS support enables cross-VPC resolution but may expose internal names -- control per attachment</p></div>
+<div class="card"><h4>Least Privilege</h4><p>Route table associations implement least-privilege network access between VPCs</p></div>
+</div>
+</section>
+
+<section>
+<h2>Industry Adaptation</h2>
+<table>
+<tr><th>Scenario</th><th>Configuration</th></tr>
+<tr><td>Hub-Spoke Enterprise</td><td>Central TGW, shared services VPC, spoke VPCs with RAM sharing</td></tr>
+<tr><td>Multi-Region</td><td>Inter-region peering sub-module with static routes between regions</td></tr>
+<tr><td>Network Segmentation</td><td>Separate route tables for prod/dev, blackhole routes for isolation</td></tr>
+<tr><td>Security Inspection</td><td>Appliance mode on firewall VPC, all traffic routed through inspection</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Production Readiness Checklist</h2>
+<ul class="checklist">
+<li>Disable default route table association and propagation for explicit control</li>
+<li>Create custom route tables for each environment (prod, dev, shared)</li>
+<li>Add blackhole routes for unused CIDR ranges</li>
+<li>Enable appliance mode for stateful network appliance VPCs</li>
+<li>Use organization-level RAM sharing instead of per-account</li>
+<li>Disable <code>enable_auto_accept_shared_attachments</code> unless SCPs are in place</li>
+<li>Deploy VPC attachments in 2+ AZ subnets for HA</li>
+<li>Enable VPC Flow Logs on all attached VPCs and TGW</li>
+<li>Monitor data processing costs ($0.02/GB)</li>
+<li>Tag all resources with Environment, CostCenter, and Owner</li>
+</ul>
+</section>
+
+<section>
+<h2>Configuration Reference</h2>
+<h3>Required Variables</h3>
+<table>
+<tr><th>Variable</th><th>Type</th><th>Description</th></tr>
+<tr><td><code>name</code></td><td>string</td><td>Name for Transit Gateway and associated resources (1-128 chars)</td></tr>
+</table>
+<h3>Key Optional Variables</h3>
+<table>
+<tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>amazon_side_asn</code></td><td>64512</td><td>BGP ASN (64512-65534 or 4200000000-4294967294)</td></tr>
+<tr><td><code>enable_dns_support</code></td><td>true</td><td>DNS resolution across attached VPCs</td></tr>
+<tr><td><code>enable_vpn_ecmp_support</code></td><td>true</td><td>ECMP for VPN load balancing</td></tr>
+<tr><td><code>enable_multicast_support</code></td><td>false</td><td>Multicast (cannot be disabled once enabled)</td></tr>
+<tr><td><code>enable_auto_accept_shared_attachments</code></td><td>false</td><td>Auto-accept cross-account attachments</td></tr>
+<tr><td><code>vpc_attachments</code></td><td>{}</td><td>Map of VPC attachment configurations</td></tr>
+<tr><td><code>route_tables</code></td><td>{}</td><td>Map of custom route tables</td></tr>
+<tr><td><code>routes</code></td><td>[]</td><td>Static routes (forwarding + blackhole)</td></tr>
+<tr><td><code>ram_principals</code></td><td>[]</td><td>Account IDs or org ARNs for RAM sharing</td></tr>
+</table>
+
+<h3>Cost Estimate (us-east-1)</h3>
+<table>
+<tr><th>Component</th><th>Unit</th><th>Price</th></tr>
+<tr><td>Transit Gateway</td><td>Per hour</td><td>$0.05</td></tr>
+<tr><td>VPC Attachment</td><td>Per hour per attachment</td><td>$0.05</td></tr>
+<tr><td>Data Processing</td><td>Per GB</td><td>$0.02</td></tr>
+<tr><td>Peering Attachment</td><td>Per hour per attachment</td><td>$0.05</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Deployment</h2>
+<pre>
+module "transit_gateway" {
+  source = "kogunlowo123/transit-gateway/aws"
+
+  name = "my-tgw"
+
+  vpc_attachments = {
+    vpc_a = {
+      vpc_id     = "vpc-aaa"
+      subnet_ids = ["subnet-aaa1", "subnet-aaa2"]
+    }
+    vpc_b = {
+      vpc_id     = "vpc-bbb"
+      subnet_ids = ["subnet-bbb1", "subnet-bbb2"]
+    }
+  }
+
+  tags = { Environment = "production" }
+}
+</pre>
+</section>
+
+<section>
+<h2>Links</h2>
+<table>
+<tr><td><a href="https://docs.aws.amazon.com/vpc/latest/tgw/what-is-transit-gateway.html">AWS Transit Gateway Documentation</a></td></tr>
+<tr><td><a href="https://docs.aws.amazon.com/vpc/latest/tgw/tgw-best-design-practices.html">Transit Gateway Design Best Practices</a></td></tr>
+<tr><td><a href="https://docs.aws.amazon.com/ram/latest/userguide/what-is.html">AWS RAM User Guide</a></td></tr>
+<tr><td><a href="https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway">Terraform aws_ec2_transit_gateway</a></td></tr>
+<tr><td><a href="https://aws.amazon.com/transit-gateway/pricing/">AWS Transit Gateway Pricing</a></td></tr>
+</table>
+</section>
+
+<footer>
+<p>terraform-aws-transit-gateway | Architecture Documentation | Generated 2026-03-15</p>
+</footer>
+
+</div>
+</body>
+</html>
