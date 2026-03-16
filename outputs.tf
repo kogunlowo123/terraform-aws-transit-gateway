@@ -1,7 +1,3 @@
-################################################################################
-# Transit Gateway Outputs
-################################################################################
-
 output "transit_gateway_id" {
   description = "The ID of the Transit Gateway."
   value       = aws_ec2_transit_gateway.this.id
@@ -27,59 +23,36 @@ output "transit_gateway_propagation_default_route_table_id" {
   value       = aws_ec2_transit_gateway.this.propagation_default_route_table_id
 }
 
-################################################################################
-# VPC Attachment Outputs
-################################################################################
-
 output "vpc_attachment_ids" {
   description = "Map of VPC attachment IDs keyed by the attachment name."
-  value = {
-    for key, attachment in aws_ec2_transit_gateway_vpc_attachment.this :
-    key => attachment.id
-  }
+  value       = { for k, v in aws_ec2_transit_gateway_vpc_attachment.this : k => v.id }
 }
 
 output "vpc_attachment_details" {
   description = "Map of VPC attachment details including ID, VPC ID, and subnet IDs."
   value = {
-    for key, attachment in aws_ec2_transit_gateway_vpc_attachment.this :
-    key => {
-      id         = attachment.id
-      vpc_id     = attachment.vpc_id
-      subnet_ids = attachment.subnet_ids
+    for k, v in aws_ec2_transit_gateway_vpc_attachment.this : k => {
+      id         = v.id
+      vpc_id     = v.vpc_id
+      subnet_ids = v.subnet_ids
     }
   }
 }
 
-################################################################################
-# Route Table Outputs
-################################################################################
-
 output "route_table_ids" {
   description = "Map of custom route table IDs keyed by the route table name."
-  value = {
-    for key, rt in aws_ec2_transit_gateway_route_table.this :
-    key => rt.id
-  }
+  value       = { for k, v in aws_ec2_transit_gateway_route_table.this : k => v.id }
 }
 
-################################################################################
-# RAM Outputs
-################################################################################
-
 output "ram_resource_share_id" {
-  description = "The ID of the RAM resource share. Null if RAM sharing is not enabled."
-  value       = local.enable_ram_sharing ? aws_ram_resource_share.this[0].id : null
+  description = "The ID of the RAM resource share."
+  value       = length(var.ram_principals) > 0 ? aws_ram_resource_share.this[0].id : null
 }
 
 output "ram_resource_share_arn" {
-  description = "The ARN of the RAM resource share. Null if RAM sharing is not enabled."
-  value       = local.enable_ram_sharing ? aws_ram_resource_share.this[0].arn : null
+  description = "The ARN of the RAM resource share."
+  value       = length(var.ram_principals) > 0 ? aws_ram_resource_share.this[0].arn : null
 }
-
-################################################################################
-# Account and Region Outputs
-################################################################################
 
 output "aws_region" {
   description = "The AWS region where the Transit Gateway is deployed."

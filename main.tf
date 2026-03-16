@@ -1,3 +1,6 @@
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+
 ################################################################################
 # Transit Gateway
 ################################################################################
@@ -13,12 +16,9 @@ resource "aws_ec2_transit_gateway" "this" {
   vpn_ecmp_support                = var.enable_vpn_ecmp_support ? "enable" : "disable"
   multicast_support               = var.enable_multicast_support ? "enable" : "disable"
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = var.name
-    }
-  )
+  tags = merge(var.tags, {
+    Name = var.name
+  })
 }
 
 ################################################################################
@@ -38,13 +38,9 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "this" {
   transit_gateway_default_route_table_association = each.value.transit_gateway_default_route_table_association
   transit_gateway_default_route_table_propagation = each.value.transit_gateway_default_route_table_propagation
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${var.name}-${each.key}"
-    },
-    each.value.tags
-  )
+  tags = merge(var.tags, {
+    Name = "${var.name}-${each.key}"
+  }, each.value.tags)
 }
 
 ################################################################################
@@ -56,12 +52,9 @@ resource "aws_ec2_transit_gateway_route_table" "this" {
 
   transit_gateway_id = aws_ec2_transit_gateway.this.id
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${var.name}-${each.value.name}"
-    }
-  )
+  tags = merge(var.tags, {
+    Name = "${var.name}-${each.value.name}"
+  })
 }
 
 ################################################################################
@@ -69,12 +62,14 @@ resource "aws_ec2_transit_gateway_route_table" "this" {
 ################################################################################
 
 resource "aws_ec2_transit_gateway_route" "this" {
-  for_each = local.routes_with_index
+  for_each = {
+    for idx, route in var.routes :
+    "${route.route_table_key}-${route.destination_cidr}" => route
+  }
 
   destination_cidr_block         = each.value.destination_cidr
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.this[each.value.route_table_key].id
 
-  # For blackhole routes, no attachment is specified
   transit_gateway_attachment_id = each.value.blackhole ? null : aws_ec2_transit_gateway_vpc_attachment.this[each.value.attachment_key].id
   blackhole                    = each.value.blackhole
 }
@@ -106,21 +101,18 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "this" {
 ################################################################################
 
 resource "aws_ram_resource_share" "this" {
-  count = local.enable_ram_sharing ? 1 : 0
+  count = length(var.ram_principals) > 0 ? 1 : 0
 
   name                      = "${var.name}-tgw-share"
   allow_external_principals = true
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${var.name}-tgw-share"
-    }
-  )
+  tags = merge(var.tags, {
+    Name = "${var.name}-tgw-share"
+  })
 }
 
 resource "aws_ram_resource_association" "this" {
-  count = local.enable_ram_sharing ? 1 : 0
+  count = length(var.ram_principals) > 0 ? 1 : 0
 
   resource_arn       = aws_ec2_transit_gateway.this.arn
   resource_share_arn = aws_ram_resource_share.this[0].arn
