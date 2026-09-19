@@ -71,7 +71,7 @@ resource "aws_ec2_transit_gateway_route" "this" {
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.this[each.value.route_table_key].id
 
   transit_gateway_attachment_id = each.value.blackhole ? null : aws_ec2_transit_gateway_vpc_attachment.this[each.value.attachment_key].id
-  blackhole                    = each.value.blackhole
+  blackhole                     = each.value.blackhole
 }
 
 ################################################################################

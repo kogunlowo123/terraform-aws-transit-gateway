@@ -92,8 +92,8 @@ module "transit_gateway" {
   name        = "enterprise-tgw"
   description = "Enterprise Transit Gateway with full network segmentation"
 
-  amazon_side_asn                       = 64512
-  enable_auto_accept_shared_attachments = true
+  amazon_side_asn                        = 64512
+  enable_auto_accept_shared_attachments  = true
   enable_default_route_table_association = false
   enable_default_route_table_propagation = false
   enable_dns_support                     = true
@@ -105,44 +105,44 @@ module "transit_gateway" {
   # --------------------------------------------------------------------------
   vpc_attachments = {
     shared_services = {
-      vpc_id     = module.vpc_shared_services.vpc_id
-      subnet_ids = module.vpc_shared_services.private_subnets
+      vpc_id                                          = module.vpc_shared_services.vpc_id
+      subnet_ids                                      = module.vpc_shared_services.private_subnets
       transit_gateway_default_route_table_association = false
       transit_gateway_default_route_table_propagation = false
-      tags = { Purpose = "shared-services" }
+      tags                                            = { Purpose = "shared-services" }
     }
 
     inspection = {
-      vpc_id                 = module.vpc_inspection.vpc_id
-      subnet_ids             = module.vpc_inspection.private_subnets
-      appliance_mode_support = true # Enable for stateful firewall appliances
+      vpc_id                                          = module.vpc_inspection.vpc_id
+      subnet_ids                                      = module.vpc_inspection.private_subnets
+      appliance_mode_support                          = true # Enable for stateful firewall appliances
       transit_gateway_default_route_table_association = false
       transit_gateway_default_route_table_propagation = false
-      tags = { Purpose = "centralized-inspection" }
+      tags                                            = { Purpose = "centralized-inspection" }
     }
 
     production_a = {
-      vpc_id     = module.vpc_production_a.vpc_id
-      subnet_ids = module.vpc_production_a.private_subnets
+      vpc_id                                          = module.vpc_production_a.vpc_id
+      subnet_ids                                      = module.vpc_production_a.private_subnets
       transit_gateway_default_route_table_association = false
       transit_gateway_default_route_table_propagation = false
-      tags = { Purpose = "production-workloads" }
+      tags                                            = { Purpose = "production-workloads" }
     }
 
     production_b = {
-      vpc_id     = module.vpc_production_b.vpc_id
-      subnet_ids = module.vpc_production_b.private_subnets
+      vpc_id                                          = module.vpc_production_b.vpc_id
+      subnet_ids                                      = module.vpc_production_b.private_subnets
       transit_gateway_default_route_table_association = false
       transit_gateway_default_route_table_propagation = false
-      tags = { Purpose = "production-workloads" }
+      tags                                            = { Purpose = "production-workloads" }
     }
 
     staging = {
-      vpc_id     = module.vpc_staging.vpc_id
-      subnet_ids = module.vpc_staging.private_subnets
+      vpc_id                                          = module.vpc_staging.vpc_id
+      subnet_ids                                      = module.vpc_staging.private_subnets
       transit_gateway_default_route_table_association = false
       transit_gateway_default_route_table_propagation = false
-      tags = { Purpose = "staging-workloads" }
+      tags                                            = { Purpose = "staging-workloads" }
     }
   }
 
@@ -305,10 +305,10 @@ module "transit_gateway" {
   ]
 
   tags = {
-    Environment  = "enterprise"
-    CostCenter   = "networking"
-    Compliance   = "sox"
-    Example      = "complete"
+    Environment = "enterprise"
+    CostCenter  = "networking"
+    Compliance  = "sox"
+    Example     = "complete"
   }
 }
 

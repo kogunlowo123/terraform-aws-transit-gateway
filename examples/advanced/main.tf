@@ -69,25 +69,25 @@ module "transit_gateway" {
 
   vpc_attachments = {
     shared = {
-      vpc_id     = module.vpc_shared.vpc_id
-      subnet_ids = module.vpc_shared.private_subnets
+      vpc_id                                          = module.vpc_shared.vpc_id
+      subnet_ids                                      = module.vpc_shared.private_subnets
       transit_gateway_default_route_table_association = false
       transit_gateway_default_route_table_propagation = false
-      tags = { Purpose = "shared-services" }
+      tags                                            = { Purpose = "shared-services" }
     }
     production = {
-      vpc_id     = module.vpc_prod.vpc_id
-      subnet_ids = module.vpc_prod.private_subnets
+      vpc_id                                          = module.vpc_prod.vpc_id
+      subnet_ids                                      = module.vpc_prod.private_subnets
       transit_gateway_default_route_table_association = false
       transit_gateway_default_route_table_propagation = false
-      tags = { Purpose = "production-workloads" }
+      tags                                            = { Purpose = "production-workloads" }
     }
     development = {
-      vpc_id     = module.vpc_dev.vpc_id
-      subnet_ids = module.vpc_dev.private_subnets
+      vpc_id                                          = module.vpc_dev.vpc_id
+      subnet_ids                                      = module.vpc_dev.private_subnets
       transit_gateway_default_route_table_association = false
       transit_gateway_default_route_table_propagation = false
-      tags = { Purpose = "development-workloads" }
+      tags                                            = { Purpose = "development-workloads" }
     }
   }
 
